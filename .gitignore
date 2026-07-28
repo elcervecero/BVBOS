@@ -1,0 +1,13 @@
+node_modules/
+.clasprc.json
+.clasp.json
+.env
+.env.*
+.DS_Store
+Thumbs.db
+*.log
+dist/
+build/
+coverage/
+.vscode/
+.idea/

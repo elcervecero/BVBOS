@@ -1,0 +1,12 @@
+**/**
+!appsscript.json
+!**/*.gs
+!**/*.html
+.git/**
+.github/**
+node_modules/**
+tools/**
+README.md
+package.json
+package-lock.json
+.clasp.json.example

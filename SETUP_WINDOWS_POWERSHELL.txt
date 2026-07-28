@@ -1,0 +1,44 @@
+# BVBOS Git + clasp migration (Windows PowerShell)
+
+# 1. Create a project folder
+mkdir C:\BVBOS
+cd C:\BVBOS
+
+# 2. Copy the contents of this starter package into C:\BVBOS
+
+# 3. Install dependencies
+npm install
+
+# 4. Sign in with the Buena Vista Brewing Google account
+npx clasp login
+npx clasp show-authorized-user
+
+# 5. In Apps Script:
+#    Project Settings > IDs > copy Script ID
+#    Also enable Apps Script API:
+#    https://script.google.com/home/usersettings
+
+# 6. Create .clasp.json
+Copy-Item .clasp.json.example .clasp.json
+notepad .clasp.json
+# Replace PASTE_YOUR_APPS_SCRIPT_ID_HERE, save and close.
+
+# 7. Pull the current live source
+npx clasp pull
+
+# If clasp places files at repository root, move only Apps Script source files
+# into src, preserving appsscript.json:
+Get-ChildItem -File -Include *.gs,*.html,appsscript.json | Move-Item -Destination .\src\
+
+# 8. Initialize Git and capture the baseline
+git init
+git branch -M main
+git add .
+git commit -m "Baseline BVBOS v1.0 Brewing Operations"
+
+# 9. Confirm local project
+npx clasp show-file-status
+npm run check
+npx clasp open-script
+
+# Do NOT run clasp push until the pulled source is reviewed and committed.
