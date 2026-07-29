@@ -1,4 +1,4 @@
-const APP_CONFIG = Object.freeze({
+var APP_CONFIG = Object.freeze({
   APP_NAME: 'BVBOS',
   APP_VERSION: '2.0 Brewing Operations',
   TIME_ZONE: 'America/Los_Angeles',
