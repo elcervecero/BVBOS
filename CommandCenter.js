@@ -15,6 +15,7 @@ function getExecutiveCommandCenter_() {
   const kegs = getKegSummary_();
   const core = getCoreEngineStatus_();
   const recentFiles = getRecentFiles_();
+  const cellar = getCellarDashboard_();
 
   const health = calculateBreweryHealth_(
     brewing,
@@ -38,11 +39,14 @@ function getExecutiveCommandCenter_() {
 
       cellar: {
         label: 'Cellar',
-        status: 'Planned',
-        primaryValue: '—',
+        status: cellar.summary.needsCip > 0 ? 'Warning' : 'Active',
+        primaryValue: cellar.summary.activeTanks,
         primaryLabel: 'Active Tanks',
         details: [
-          'Cellar module not connected yet'
+          cellar.summary.fermenting + ' fermenting',
+          cellar.summary.conditioning + ' conditioning',
+          cellar.summary.coldCrash + ' cold crash',
+          cellar.summary.readyForPackaging + ' ready for packaging'
         ]
       },
 

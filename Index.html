@@ -1501,31 +1501,62 @@
 
       <!-- CELLAR -->
 
-      <section
-        id="page-cellar"
-        class="page">
-
-        <div class="module-placeholder">
-
-          <div class="placeholder-icon">
-            🧪
+      <section id="page-cellar" class="page">
+        <div class="command-header">
+          <div>
+            <span class="eyebrow">CELLAR OPERATIONS</span>
+            <h2>Fermenter Dashboard</h2>
+            <p id="cellarGeneratedAt">Loading Cellar data…</p>
           </div>
-
-          <h2>
-            Cellar Module
-          </h2>
-
-          <p>
-            Fermentation, tank status, gravity readings,
-            dry hopping, transfers and conditioning will appear here.
-          </p>
-
-          <span class="placeholder-status">
-            Planned
-          </span>
-
+          <button class="refresh-button" onclick="loadCellarOperations()">Refresh Cellar</button>
         </div>
 
+        <div class="cellar-metrics">
+          <div class="cellar-metric"><span>Active Tanks</span><strong id="cellarActiveCount">0</strong></div>
+          <div class="cellar-metric"><span>Fermenting</span><strong id="cellarFermentingCount">0</strong></div>
+          <div class="cellar-metric"><span>Conditioning</span><strong id="cellarConditioningCount">0</strong></div>
+          <div class="cellar-metric"><span>Cold Crash</span><strong id="cellarColdCrashCount">0</strong></div>
+          <div class="cellar-metric"><span>Ready for Packaging</span><strong id="cellarReadyCount">0</strong></div>
+        </div>
+
+        <section class="panel cellar-panel">
+          <div class="panel-heading"><div><h3>Active Fermenters</h3><p>Live tank occupancy from completed Cellar Handoffs.</p></div></div>
+          <div id="cellarTankGrid" class="cellar-tank-grid"><div class="empty-state">Loading active fermenters…</div></div>
+        </section>
+
+        <div class="cellar-two-column">
+          <section class="panel cellar-panel">
+            <div class="panel-heading"><div><h3>Add Cellar Reading</h3><p>Record gravity, pH, temperature, pressure or notes.</p></div></div>
+            <div class="form-stack">
+              <label>Batch / Tank<select id="cellarReadingBatch"></select></label>
+              <div class="form-two-column">
+                <label>Temperature °F<input id="cellarReadingTemperature" type="number" step="0.1"></label>
+                <label>Gravity<input id="cellarReadingGravity" type="number" step="0.001"></label>
+                <label>pH<input id="cellarReadingPh" type="number" step="0.01"></label>
+                <label>Pressure PSI<input id="cellarReadingPressure" type="number" step="0.1"></label>
+              </div>
+              <label>Employee<input id="cellarReadingEmployee" type="text" placeholder="Employee name"></label>
+              <label>Notes<textarea id="cellarReadingNotes" rows="3" placeholder="Observation or cellar action"></textarea></label>
+              <button class="primary-action-button" onclick="submitCellarReading()">Save Cellar Reading</button>
+            </div>
+          </section>
+
+          <section class="panel cellar-panel">
+            <div class="panel-heading"><div><h3>Update Tank Status</h3><p>Advance fermentation, conditioning and packaging readiness.</p></div></div>
+            <div class="form-stack">
+              <label>Batch / Tank<select id="cellarStatusBatch"></select></label>
+              <label>New Status<select id="cellarStatusValue"></select></label>
+              <label>Employee<input id="cellarStatusEmployee" type="text" placeholder="Employee name"></label>
+              <label>Notes<textarea id="cellarStatusNotes" rows="3" placeholder="Reason or action completed"></textarea></label>
+              <button class="primary-action-button" onclick="submitCellarStatus()">Update Tank Status</button>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel cellar-panel">
+          <div class="panel-heading"><div><h3>Cellar Activity Timeline</h3><p>Recent readings and status changes.</p></div></div>
+          <div id="cellarEventTimeline" class="brew-event-list"><div class="empty-state">No Cellar activity yet.</div></div>
+        </section>
       </section>
 
 

@@ -239,6 +239,43 @@ function businessText_(
 }
 
 
+
+
+/* =========================================================
+   RC10.1 CELLAR SERVICES
+   ========================================================= */
+
+function getCellarOperationsService() {
+  return getCellarDashboard_();
+}
+
+function saveCellarReadingService(data) {
+  data=data||{};
+  requireBusinessValue_(data.batchId,'Batch');
+  if (data.temperatureF !== '' && data.temperatureF != null) businessNumber_(data.temperatureF,'Temperature °F',{minimum:-20,maximum:220});
+  if (data.gravity !== '' && data.gravity != null) businessNumber_(data.gravity,'Gravity',{minimum:0.9,maximum:2});
+  if (data.pH !== '' && data.pH != null) businessNumber_(data.pH,'pH',{minimum:0,maximum:14});
+  if (data.pressurePsi !== '' && data.pressurePsi != null) businessNumber_(data.pressurePsi,'Pressure PSI',{minimum:0,maximum:100});
+  if ([data.temperatureF,data.gravity,data.pH,data.pressurePsi,data.notes].every(function(v){return v===''||v==null;})) {
+    throw new Error('Enter at least one reading or a note.');
+  }
+  return saveCellarReading_({
+    batchId:businessText_(data.batchId,100), temperatureF:data.temperatureF, gravity:data.gravity,
+    pH:data.pH, pressurePsi:data.pressurePsi, employee:businessText_(data.employee,150),
+    notes:businessText_(data.notes,2000), status:businessText_(data.status,100)
+  });
+}
+
+function updateCellarStatusService(data) {
+  data=data||{};
+  requireBusinessValue_(data.batchId,'Batch');
+  validateBusinessOption_(data.status,CELLAR_STATUSES,'Cellar Status');
+  return updateCellarStatus_({
+    batchId:businessText_(data.batchId,100),status:data.status,
+    employee:businessText_(data.employee,150),notes:businessText_(data.notes,2000)
+  });
+}
+
 /* =========================================================
    BREWING BUSINESS RULES
    ========================================================= */

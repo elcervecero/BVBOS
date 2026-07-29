@@ -15,7 +15,11 @@ const APP_CONFIG = Object.freeze({
 
     BREWING_BATCHES: 'Brewing Batches',
     BREW_DAY_EVENTS: 'Brew Day Events',
-    RECIPE_INDEX: 'Recipe Index'
+    RECIPE_INDEX: 'Recipe Index',
+
+    CELLAR_HANDOFFS: 'Cellar Handoffs',
+    CELLAR_READINGS: 'Cellar Readings',
+    CELLAR_EVENTS: 'Cellar Events'
   }),
 
   HEADERS: Object.freeze({
@@ -29,7 +33,8 @@ const APP_CONFIG = Object.freeze({
     RECENT_EVENTS: 10,
     OPEN_ALERTS: 10,
     RECENT_BATCHES: 10,
-    RECENT_BREW_EVENTS: 25
+    RECENT_BREW_EVENTS: 25,
+    RECENT_CELLAR_EVENTS: 30
   }),
 
   BREWING: Object.freeze({

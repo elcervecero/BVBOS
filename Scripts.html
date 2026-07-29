@@ -58,6 +58,7 @@ document.addEventListener(
     navigateTo("dashboard");
     loadDashboard();
     loadBrewingOperations();
+    loadCellarOperations();
   }
 );
 
@@ -144,6 +145,8 @@ function navigateTo(pageName) {
   );
 
   closeSidebar();
+
+  if (pageName === 'cellar') { loadCellarOperations(); }
 
   window.scrollTo({
     top: 0,
@@ -815,6 +818,28 @@ function openBrewingHistoryRecord(
     .getBrewingHistoryRecordService(
       batchId
     );
+}
+
+
+
+
+/* =========================================================
+   RC10.1 CELLAR ACTIONS
+   ========================================================= */
+
+function loadCellarOperations() {
+  google.script.run.withSuccessHandler(renderCellarOperations).withFailureHandler(function(error){alert('BVBOS Cellar could not load: '+(error&&error.message?error.message:error));}).getCellarOperationsService();
+}
+
+function submitCellarReading() {
+  const data={batchId:getInputValue('cellarReadingBatch'),temperatureF:getInputValue('cellarReadingTemperature'),gravity:getInputValue('cellarReadingGravity'),pH:getInputValue('cellarReadingPh'),pressurePsi:getInputValue('cellarReadingPressure'),employee:getInputValue('cellarReadingEmployee'),notes:getInputValue('cellarReadingNotes')};
+  google.script.run.withSuccessHandler(function(){['cellarReadingTemperature','cellarReadingGravity','cellarReadingPh','cellarReadingPressure','cellarReadingNotes'].forEach(function(id){const e=document.getElementById(id);if(e)e.value='';});loadCellarOperations();loadDashboard();alert('Cellar reading saved.');}).withFailureHandler(function(error){alert('BVBOS Cellar could not save the reading: '+(error&&error.message?error.message:error));}).saveCellarReadingService(data);
+}
+
+function submitCellarStatus() {
+  const data={batchId:getInputValue('cellarStatusBatch'),status:getInputValue('cellarStatusValue'),employee:getInputValue('cellarStatusEmployee'),notes:getInputValue('cellarStatusNotes')};
+  if(!data.batchId){alert('Select an active Cellar batch.');return;}
+  google.script.run.withSuccessHandler(function(){const n=document.getElementById('cellarStatusNotes');if(n)n.value='';loadCellarOperations();loadDashboard();alert('Tank status updated to '+data.status+'.');}).withFailureHandler(function(error){alert('BVBOS Cellar could not update the status: '+(error&&error.message?error.message:error));}).updateCellarStatusService(data);
 }
 
 

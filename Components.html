@@ -100,6 +100,52 @@ function renderDetailList(
 }
 
 
+
+/* =========================================================
+   RC10.1 CELLAR DASHBOARD
+   ========================================================= */
+
+window.BVBOS_CELLAR_DATA = null;
+
+function renderCellarOperations(data) {
+  data=data||{}; window.BVBOS_CELLAR_DATA=data;
+  const summary=data.summary||{};
+  setText('cellarGeneratedAt','Live Cellar data refreshed '+(data.generatedAt||''));
+  setText('cellarActiveCount',summary.activeTanks||0); setText('cellarFermentingCount',summary.fermenting||0);
+  setText('cellarConditioningCount',summary.conditioning||0); setText('cellarColdCrashCount',summary.coldCrash||0);
+  setText('cellarReadyCount',summary.readyForPackaging||0);
+  renderCellarTankCards(data.activeTanks||[]); renderCellarSelects(data.activeTanks||[],data.allowedStatuses||[]);
+  renderCellarEvents(data.recentEvents||[]);
+}
+
+function renderCellarTankCards(tanks) {
+  const container=document.getElementById('cellarTankGrid'); if(!container)return;
+  if(!tanks.length){container.innerHTML='<div class="empty-state">No active Cellar tanks.</div>';return;}
+  container.innerHTML=tanks.map(function(tank){
+    const r=tank.latestReading||{};
+    return '<article class="cellar-tank-card">'+
+      '<div class="cellar-tank-header"><div><span class="cellar-tank-name">'+escapeHtml(tank.tank||'Unassigned')+'</span><h3>'+escapeHtml(tank.product||'Unnamed Product')+'</h3></div><span class="module-status status-'+normalizeClassName(tank.status)+'">'+escapeHtml(tank.status)+'</span></div>'+
+      '<div class="cellar-batch-meta">Batch '+escapeHtml(tank.batchNumber||'—')+' • '+escapeHtml(String(tank.daysInTank||0))+' days in tank</div>'+
+      '<div class="cellar-reading-grid">'+
+       '<div><span>Temp</span><strong>'+escapeHtml(r.temperatureF ? r.temperatureF+' °F':'—')+'</strong></div>'+
+       '<div><span>Gravity</span><strong>'+escapeHtml(r.gravity||tank.originalGravity||'—')+'</strong></div>'+
+       '<div><span>pH</span><strong>'+escapeHtml(r.pH||'—')+'</strong></div>'+
+       '<div><span>Pressure</span><strong>'+escapeHtml(r.pressurePsi ? r.pressurePsi+' PSI':'—')+'</strong></div>'+
+      '</div><div class="cellar-tank-footer">'+escapeHtml(tank.finalVolumeGal ? tank.finalVolumeGal+' gal':'')+'</div></article>';
+  }).join('');
+}
+
+function renderCellarSelects(tanks,statuses) {
+  ['cellarReadingBatch','cellarStatusBatch'].forEach(function(id){const el=document.getElementById(id);if(!el)return;el.innerHTML=tanks.length?tanks.map(function(t){return '<option value="'+escapeHtml(t.batchId)+'">'+escapeHtml(t.tank+' — '+t.product+' — '+t.batchNumber)+'</option>';}).join(''):'<option value="">No active tanks</option>';});
+  const status=document.getElementById('cellarStatusValue'); if(status)status.innerHTML=statuses.map(function(v){return '<option value="'+escapeHtml(v)+'">'+escapeHtml(v)+'</option>';}).join('');
+}
+
+function renderCellarEvents(events) {
+  const c=document.getElementById('cellarEventTimeline');if(!c)return;
+  if(!events.length){c.innerHTML='<div class="empty-state">No Cellar activity yet.</div>';return;}
+  c.innerHTML=events.map(function(e){return '<div class="brew-event-row"><div class="brew-event-main"><div class="brew-event-title">'+escapeHtml((e.tank||'Cellar')+' — '+(e.eventType||'Event'))+'</div><div class="brew-event-meta">'+escapeHtml([e.eventDateTime,e.product,e.status,e.employee].filter(Boolean).join(' • '))+'</div>'+(e.notes?'<div class="brew-event-notes">'+escapeHtml(e.notes)+'</div>':'')+'</div></div>';}).join('');
+}
+
 /* =========================================================
    EXECUTIVE COMMAND CENTER
    ========================================================= */

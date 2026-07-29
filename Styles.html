@@ -1304,4 +1304,10 @@ textarea {
     width: 100%;
   }
 }
+
+
+/* RC10.1 CELLAR */
+.cellar-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px}.cellar-metric{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px}.cellar-metric span{display:block;color:var(--muted);font-size:11px}.cellar-metric strong{display:block;margin-top:7px;font-size:28px}.cellar-panel{padding:16px;margin-bottom:14px}.cellar-tank-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cellar-tank-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px}.cellar-tank-header{display:flex;justify-content:space-between;gap:10px}.cellar-tank-header h3{margin:5px 0 0;font-size:18px}.cellar-tank-name{color:var(--orange);font-weight:900}.cellar-batch-meta,.cellar-tank-footer{margin-top:10px;color:var(--muted);font-size:12px}.cellar-reading-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}.cellar-reading-grid div{background:var(--panel);border-radius:8px;padding:9px}.cellar-reading-grid span{display:block;color:var(--muted);font-size:10px}.cellar-reading-grid strong{display:block;margin-top:4px}.cellar-two-column{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form-stack label{display:grid;gap:6px;color:var(--muted);font-size:12px}.form-stack input,.form-stack select,.form-stack textarea{width:100%;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:9px;padding:11px}.status-fermenting,.status-active{color:var(--green)}.status-conditioning,.status-cold-crash{color:var(--yellow)}.status-ready-for-packaging{color:#55aef7}.status-needs-cip{color:var(--red)}
+@media(max-width:1000px){.cellar-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.cellar-tank-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cellar-two-column{grid-template-columns:1fr}}@media(max-width:650px){.cellar-tank-grid,.cellar-metrics{grid-template-columns:1fr}}
+
 </style>
