@@ -1,13 +1,13 @@
-\
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const root = path.resolve(__dirname, "..", "src");
+const root = path.resolve(__dirname, "..");
 const failures = [];
 
 function walk(dir) {
   if (!fs.existsSync(dir)) return [];
+
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);
     return entry.isDirectory() ? walk(full) : [full];
@@ -15,13 +15,28 @@ function walk(dir) {
 }
 
 for (const file of walk(root)) {
-  if (!file.endsWith(".gs") && !file.endsWith(".html")) continue;
+  if (file.includes(`${path.sep}tools${path.sep}`)) continue;
+  if (file.includes(`${path.sep}node_modules${path.sep}`)) continue;
+  if (file.includes(`${path.sep}.git${path.sep}`)) continue;
+  if (file.includes(`${path.sep}src${path.sep}`)) continue;
+
+  if (
+    !file.endsWith(".js") &&
+    !file.endsWith(".gs") &&
+    !file.endsWith(".html")
+  ) {
+    continue;
+  }
 
   let source = fs.readFileSync(file, "utf8");
 
   if (file.endsWith(".html")) {
-    const blocks = [...source.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
+    const blocks = [
+      ...source.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi),
+    ];
+
     if (!blocks.length) continue;
+
     source = blocks.map((match) => match[1]).join("\n");
   }
 
@@ -30,7 +45,9 @@ for (const file of walk(root)) {
     console.log(`OK  ${path.relative(root, file)}`);
   } catch (error) {
     failures.push({ file, error });
-    console.error(`ERR ${path.relative(root, file)}\n${error.message}`);
+    console.error(
+      `ERR ${path.relative(root, file)}\n${error.message}`
+    );
   }
 }
 
