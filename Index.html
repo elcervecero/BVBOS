@@ -1517,7 +1517,24 @@
           <div class="cellar-metric"><span>Conditioning</span><strong id="cellarConditioningCount">0</strong></div>
           <div class="cellar-metric"><span>Cold Crash</span><strong id="cellarColdCrashCount">0</strong></div>
           <div class="cellar-metric"><span>Ready for Packaging</span><strong id="cellarReadyCount">0</strong></div>
+          <div class="cellar-metric"><span>Available Tanks</span><strong id="cellarAvailableCount">0</strong></div>
         </div>
+
+        <section class="panel cellar-panel">
+          <div class="panel-heading"><div><h3>Cellar Vessel Map</h3><p>At-a-glance status for every registered vessel.</p></div></div>
+          <div class="tank-map-legend">
+            <span><i class="tank-dot tank-dot-available"></i>Available</span>
+            <span><i class="tank-dot tank-dot-occupied"></i>Occupied</span>
+            <span><i class="tank-dot tank-dot-special"></i>Special Purpose</span>
+            <span><i class="tank-dot tank-dot-offline"></i>Offline / Needs CIP</span>
+          </div>
+          <div id="cellarVesselMap" class="cellar-vessel-map"><div class="empty-state">Loading vessel registry…</div></div>
+        </section>
+
+        <section class="panel cellar-panel">
+          <div class="panel-heading"><div><h3>Available Tanks</h3><p>Empty fermentation vessels ready for assignment. Glycol capability is shown on each card.</p></div></div>
+          <div id="cellarAvailableGrid" class="cellar-tank-grid"><div class="empty-state">Loading available tanks…</div></div>
+        </section>
 
         <section class="panel cellar-panel">
           <div class="panel-heading"><div><h3>Active Fermenters</h3><p>Live tank occupancy from completed Cellar Handoffs.</p></div></div>

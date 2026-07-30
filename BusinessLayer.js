@@ -266,6 +266,10 @@ function getCellarOperationsService() {
   return getCellarDashboard_();
 }
 
+function runRc11AcceptanceTestService() {
+  return runRc11TankRegistryAcceptanceTest_();
+}
+
 function saveCellarReadingService(data) {
   data=data||{};
   requireBusinessValue_(data.batchId,'Batch');

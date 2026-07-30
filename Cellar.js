@@ -140,17 +140,31 @@ function getCellarDashboard_() {
   const completed = records.filter(function(r){ return ['Transferred','Completed'].indexOf(r.status) !== -1; });
   const statuses = {};
   active.forEach(function(r){ statuses[r.status]=(statuses[r.status]||0)+1; });
+  const tankDashboard = buildTankDashboard_(active);
   return {
     activeTanks: active,
     completedHistory: completed.slice().reverse(),
     recentEvents: events.slice().reverse().slice(0,APP_CONFIG.LIMITS.RECENT_CELLAR_EVENTS),
+    tankRegistry: {
+      tanks: tankDashboard.tanks,
+      availableTanks: tankDashboard.available,
+      summary: {
+        registered: tankDashboard.tanks.length,
+        available: tankDashboard.available.length,
+        occupied: tankDashboard.occupied.length,
+        glycolAvailable: tankDashboard.glycolAvailable.length,
+        specialPurpose: tankDashboard.specialPurpose.length,
+        offline: tankDashboard.offline.length
+      }
+    },
     summary: {
       activeTanks: active.length,
       fermenting: statuses['Fermenting'] || 0,
       conditioning: statuses['Conditioning'] || 0,
       coldCrash: statuses['Cold Crash'] || 0,
       readyForPackaging: statuses['Ready for Packaging'] || 0,
-      needsCip: statuses['Needs CIP'] || 0
+      needsCip: statuses['Needs CIP'] || 0,
+      availableTanks: tankDashboard.available.length
     },
     generatedAt: formatDateTime_(new Date()),
     allowedStatuses: CELLAR_STATUSES

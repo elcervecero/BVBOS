@@ -1,6 +1,6 @@
 var APP_CONFIG = Object.freeze({
   APP_NAME: 'BVBOS',
-  APP_VERSION: '2.0 Brewing Operations',
+  APP_VERSION: 'RC11 Tank Registry',
   TIME_ZONE: 'America/Los_Angeles',
 
   SPREADSHEET_ID:
@@ -19,7 +19,8 @@ var APP_CONFIG = Object.freeze({
 
     CELLAR_HANDOFFS: 'Cellar Handoffs',
     CELLAR_READINGS: 'Cellar Readings',
-    CELLAR_EVENTS: 'Cellar Events'
+    CELLAR_EVENTS: 'Cellar Events',
+    TANK_REGISTRY: 'Tank Registry'
   }),
 
   HEADERS: Object.freeze({

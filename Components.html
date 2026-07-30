@@ -110,12 +110,47 @@ window.BVBOS_CELLAR_DATA = null;
 function renderCellarOperations(data) {
   data=data||{}; window.BVBOS_CELLAR_DATA=data;
   const summary=data.summary||{};
+  const registry=data.tankRegistry||{};
   setText('cellarGeneratedAt','Live Cellar data refreshed '+(data.generatedAt||''));
   setText('cellarActiveCount',summary.activeTanks||0); setText('cellarFermentingCount',summary.fermenting||0);
   setText('cellarConditioningCount',summary.conditioning||0); setText('cellarColdCrashCount',summary.coldCrash||0);
-  setText('cellarReadyCount',summary.readyForPackaging||0);
+  setText('cellarReadyCount',summary.readyForPackaging||0); setText('cellarAvailableCount',summary.availableTanks||0);
+  renderCellarVesselMap(registry.tanks||[]);
+  renderAvailableTankCards(registry.availableTanks||[]);
   renderCellarTankCards(data.activeTanks||[]); renderCellarSelects(data.activeTanks||[],data.allowedStatuses||[]);
   renderCellarEvents(data.recentEvents||[]);
+}
+
+function tankCapabilityLabel(tank) {
+  return tank.glycolConnected ? 'Glycol' : 'No Glycol';
+}
+
+function renderCellarVesselMap(tanks) {
+  const container=document.getElementById('cellarVesselMap'); if(!container)return;
+  if(!tanks.length){container.innerHTML='<div class="empty-state">No vessels registered.</div>';return;}
+  container.innerHTML=tanks.map(function(tank){
+    const batch=tank.batch||{};
+    const secondary=batch.product ? batch.product : (tank.operationalRole||tank.tankType||'');
+    return '<article class="vessel-map-card vessel-'+escapeHtml(tank.availability||'offline')+'">'+
+      '<div class="vessel-map-top"><strong>'+escapeHtml(tank.tankName)+'</strong><span>'+escapeHtml(tank.displayStatus||'')+'</span></div>'+
+      '<div class="vessel-map-capacity">'+escapeHtml(String(tank.capacityGallons||0))+' gal</div>'+
+      '<div class="vessel-map-detail">'+escapeHtml(secondary)+'</div>'+
+      '<div class="vessel-map-detail">'+escapeHtml(tankCapabilityLabel(tank))+'</div>'+
+    '</article>';
+  }).join('');
+}
+
+function renderAvailableTankCards(tanks) {
+  const container=document.getElementById('cellarAvailableGrid'); if(!container)return;
+  if(!tanks.length){container.innerHTML='<div class="empty-state">No fermentation tanks are currently available.</div>';return;}
+  container.innerHTML=tanks.map(function(tank){
+    const warning=tank.glycolConnected?'Temperature controlled':'Not on glycol — use process caution';
+    return '<article class="cellar-tank-card available-tank-card">'+
+      '<div class="cellar-tank-header"><div><span class="cellar-tank-name">'+escapeHtml(tank.tankName)+'</span><h3>'+escapeHtml(String(tank.capacityGallons))+' gal '+escapeHtml(tank.tankType)+'</h3></div><span class="module-status status-available">Available</span></div>'+
+      '<div class="cellar-batch-meta">'+escapeHtml(tankCapabilityLabel(tank))+' • '+escapeHtml(warning)+'</div>'+
+      (tank.notes?'<div class="cellar-tank-footer">'+escapeHtml(tank.notes)+'</div>':'')+
+    '</article>';
+  }).join('');
 }
 
 function renderCellarTankCards(tanks) {
