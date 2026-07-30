@@ -48,8 +48,8 @@ const BVBOS_RULES = Object.freeze({
   'Oxygenation',
   'Yeast Pitch',
   'Fermenter Filled',
-  '  'Brew Complete'
-    ])
+  'Brew Complete'
+  ])
   }),
 
   CIP: Object.freeze({
