@@ -32,7 +32,24 @@ const BVBOS_RULES = Object.freeze({
       'Cancelled'
     ]),
 
-    STAGES: APP_CONFIG.BREWING.STAGES
+    STAGES: Object.freeze([
+  'Planned',
+  'Recipe Selected',
+  'Water Preparation',
+  'Milling',
+  'Mash In',
+  'Mash Rest',
+  'Vorlauf',
+  'Lauter / Sparge',
+  'Transfer to Kettle',
+  'Boil',
+  'Whirlpool',
+  'Knockout',
+  'Oxygenation',
+  'Yeast Pitch',
+  'Fermenter Filled',
+  '  'Brew Complete'
+    ])
   }),
 
   CIP: Object.freeze({
