@@ -1,0 +1,2413 @@
+<script>
+const PAGE_TITLES = {
+  dashboard: {
+    title: "Executive Command Center",
+    subtitle: "Buena Vista Brewing Company"
+  },
+
+  brewing: {
+    title: "Brewing",
+    subtitle: "Recipes, batches and brew-day operations"
+  },
+
+  cellar: {
+    title: "Cellar",
+    subtitle: "Fermentation, tanks and transfers"
+  },
+
+  cip: {
+    title: "CIP & Sanitation",
+    subtitle: "Cleaning records and verification"
+  },
+
+  kegs: {
+    title: "Keg Command Center",
+    subtitle: "Fleet status and Distribrewtion intelligence"
+  },
+
+  inventory: {
+    title: "Inventory",
+    subtitle: "Ingredients, chemicals and packaging"
+  },
+
+  maintenance: {
+    title: "Maintenance",
+    subtitle: "Equipment service and preventive maintenance"
+  },
+
+  documents: {
+    title: "Knowledge Center",
+    subtitle: "Google Drive files and brewery documentation"
+  },
+
+  reports: {
+    title: "Reports & Analytics",
+    subtitle: "Production, yield and operating trends"
+  },
+
+  settings: {
+    title: "Settings",
+    subtitle: "Owner controls and integrations"
+  }
+};
+
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function() {
+    navigateTo("dashboard");
+    loadDashboard();
+    loadBrewingOperations();
+    loadCellarOperations();
+  }
+);
+
+
+function toggleSidebar() {
+  const sidebar =
+    document.getElementById("sidebar");
+
+  const overlay =
+    document.getElementById(
+      "sidebarOverlay"
+    );
+
+  if (sidebar) {
+    sidebar.classList.toggle("open");
+  }
+
+  if (overlay) {
+    overlay.classList.toggle("visible");
+  }
+}
+
+
+function closeSidebar() {
+  const sidebar =
+    document.getElementById("sidebar");
+
+  const overlay =
+    document.getElementById(
+      "sidebarOverlay"
+    );
+
+  if (sidebar) {
+    sidebar.classList.remove("open");
+  }
+
+  if (overlay) {
+    overlay.classList.remove("visible");
+  }
+}
+
+
+function navigateTo(pageName) {
+  document
+    .querySelectorAll(".page")
+    .forEach(function(page) {
+      page.classList.remove(
+        "active-page"
+      );
+    });
+
+  const selectedPage =
+    document.getElementById(
+      "page-" + pageName
+    );
+
+  if (selectedPage) {
+    selectedPage.classList.add(
+      "active-page"
+    );
+  }
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(function(button) {
+      button.classList.toggle(
+        "active",
+        button.dataset.page === pageName
+      );
+    });
+
+  const pageData =
+    PAGE_TITLES[pageName] ||
+    PAGE_TITLES.dashboard;
+
+  setText(
+    "pageTitle",
+    pageData.title
+  );
+
+  setText(
+    "pageSubtitle",
+    pageData.subtitle
+  );
+
+  closeSidebar();
+
+  if (pageName === 'cellar') { loadCellarOperations(); }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+function refreshDashboard() {
+  loadDashboard();
+}
+
+
+function loadDashboard() {
+  setConnectionState(
+    "loading",
+    "Connecting..."
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      renderDashboard
+    )
+    .withFailureHandler(
+      showDashboardError
+    )
+    .getDashboardForBrowser();
+}
+
+
+function setConnectionState(
+  state,
+  label
+) {
+  setText(
+    "connectionStatus",
+    label
+  );
+
+  setText(
+    "sidebarConnection",
+    label
+  );
+
+  const dot =
+    document.getElementById(
+      "connectionDot"
+    );
+
+  if (!dot) {
+    return;
+  }
+
+  dot.className =
+    "connection-dot";
+
+  if (state === "connected") {
+    dot.classList.add(
+      "connected"
+    );
+  }
+
+  if (state === "error") {
+    dot.classList.add(
+      "error"
+    );
+  }
+}
+
+
+function renderDashboard(data) {
+  const commandCenter =
+    data &&
+    data.commandCenter
+      ? data.commandCenter
+      : {};
+
+  setConnectionState(
+    "connected",
+    "Connected"
+  );
+
+  renderAppStatus(
+    data.app || {},
+    commandCenter.statusBar || {}
+  );
+
+  renderHealth(
+    commandCenter.health || {}
+  );
+
+  renderCommandCards(
+    commandCenter.cards || {}
+  );
+
+  renderOpenAlerts(
+    commandCenter.openAlerts || []
+  );
+
+  renderRecommendations(
+    commandCenter.recommendations || []
+  );
+
+  renderTimeline(
+    commandCenter.recentEvents || []
+  );
+
+  renderModuleHealth(
+    commandCenter.modules || []
+  );
+
+  renderRecentFiles(
+    commandCenter.recentFiles || []
+  );
+}
+
+
+function renderAppStatus(
+  app,
+  statusBar
+) {
+  const version =
+    statusBar.appVersion ||
+    app.version ||
+    "—";
+
+  const generatedAt =
+    statusBar.generatedAt ||
+    app.generatedAt ||
+    "—";
+
+  setText(
+    "systemStatus",
+    statusBar.systemStatus ||
+    "Online"
+  );
+
+  setText(
+    "databaseStatus",
+    statusBar.databaseStatus ||
+    "Online"
+  );
+
+  setText(
+    "appVersion",
+    version
+  );
+
+  setText(
+    "generatedAt",
+    generatedAt
+  );
+
+  setText(
+    "lastUpdated",
+    "Live data refreshed " +
+    generatedAt
+  );
+
+  setText(
+    "sidebarVersion",
+    "BVBOS " + version
+  );
+
+  setText(
+    "footerVersion",
+    "Version " + version
+  );
+}
+
+
+function renderCommandCards(cards) {
+  renderExecutiveCard(
+    "brewing",
+    cards.brewing
+  );
+
+  renderExecutiveCard(
+    "cellar",
+    cards.cellar
+  );
+
+  renderExecutiveCard(
+    "kegs",
+    cards.kegs
+  );
+
+  renderExecutiveCard(
+    "cip",
+    cards.cip
+  );
+
+  renderExecutiveCard(
+    "alerts",
+    cards.alerts
+  );
+
+  renderExecutiveCard(
+    "documents",
+    cards.documents
+  );
+}
+
+
+function showDashboardError(error) {
+  setConnectionState(
+    "error",
+    "Connection Error"
+  );
+
+  const message =
+    error && error.message
+      ? error.message
+      : String(error || "Unknown error");
+
+  console.error(
+    "BVBOS dashboard error:",
+    error
+  );
+
+  alert(
+    "BVBOS could not load live data: " +
+    message
+  );
+}
+
+
+
+/* =========================================================
+   RC8.2 BREW RECORD PDF & PRINT ACTIONS
+   ========================================================= */
+
+function escapePrintHtml(
+  value
+) {
+  return String(
+    value === null ||
+    value === undefined
+      ? ""
+      : value
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+function buildPrintableBrewRecordHtml(
+  record
+) {
+  const batch =
+    record.batch || {};
+
+  const handoff =
+    record.handoff || {};
+
+  const events =
+    Array.isArray(
+      record.events
+    )
+      ? record.events
+      : [];
+
+  const detailRows = [
+    ["Batch Number", batch.batchNumber],
+    ["Batch ID", batch.batchId],
+    ["Product", batch.product],
+    ["Recipe", batch.recipeId],
+    ["Brew Date", batch.brewDate],
+    ["Completed", batch.completedDateTime],
+    ["Brewer", batch.brewer],
+    ["Fermenter", batch.fermenter],
+    ["Planned Volume", batch.plannedVolumeBbl
+      ? batch.plannedVolumeBbl + " BBL"
+      : ""],
+    ["Final Volume", batch.finalVolumeGal
+      ? batch.finalVolumeGal + " gal"
+      : ""],
+    ["Original Gravity", batch.originalGravity],
+    ["Estimated Loss", batch.estimatedLossGal
+      ? batch.estimatedLossGal + " gal"
+      : ""]
+  ]
+    .filter(function(row) {
+      return (
+        row[1] !== "" &&
+        row[1] !== null &&
+        row[1] !== undefined
+      );
+    })
+    .map(function(row) {
+      return (
+        "<tr>" +
+          "<th>" +
+            escapePrintHtml(row[0]) +
+          "</th>" +
+          "<td>" +
+            escapePrintHtml(row[1]) +
+          "</td>" +
+        "</tr>"
+      );
+    })
+    .join("");
+
+  const handoffRows =
+    handoff.handoffId
+      ? [
+          ["Handoff ID", handoff.handoffId],
+          ["Date / Time", handoff.handoffDateTime],
+          ["Fermenter", handoff.fermenter],
+          ["Final Volume", handoff.finalVolumeGal
+            ? handoff.finalVolumeGal + " gal"
+            : ""],
+          ["OG", handoff.originalGravity],
+          ["Knockout Temperature", handoff.knockoutTemperatureF
+            ? handoff.knockoutTemperatureF + " F"
+            : ""],
+          ["Estimated Loss", handoff.estimatedLossGal
+            ? handoff.estimatedLossGal + " gal"
+            : ""],
+          ["Status", handoff.status],
+          ["Final Notes", handoff.finalNotes]
+        ]
+          .filter(function(row) {
+            return (
+              row[1] !== "" &&
+              row[1] !== null &&
+              row[1] !== undefined
+            );
+          })
+          .map(function(row) {
+            return (
+              "<tr>" +
+                "<th>" +
+                  escapePrintHtml(row[0]) +
+                "</th>" +
+                "<td>" +
+                  escapePrintHtml(row[1]) +
+                "</td>" +
+              "</tr>"
+            );
+          })
+          .join("")
+      : "";
+
+  const eventRows =
+    events
+      .map(function(event) {
+        const readings = [
+          event.temperatureF
+            ? event.temperatureF + " F"
+            : "",
+          event.volumeGal
+            ? event.volumeGal + " gal"
+            : "",
+          event.gravity
+            ? "Gravity " + event.gravity
+            : "",
+          event.durationMin
+            ? event.durationMin + " min"
+            : ""
+        ]
+          .filter(Boolean)
+          .join(" | ");
+
+        return (
+          "<tr>" +
+            "<td>" +
+              escapePrintHtml(
+                event.eventDateTime
+              ) +
+            "</td>" +
+            "<td>" +
+              escapePrintHtml(
+                event.stage
+              ) +
+            "</td>" +
+            "<td>" +
+              escapePrintHtml(
+                event.action
+              ) +
+            "</td>" +
+            "<td>" +
+              escapePrintHtml(
+                readings
+              ) +
+            "</td>" +
+            "<td>" +
+              escapePrintHtml(
+                event.employee
+              ) +
+            "</td>" +
+            "<td>" +
+              escapePrintHtml(
+                event.notes
+              ) +
+            "</td>" +
+          "</tr>"
+        );
+      })
+      .join("");
+
+  return (
+    "<!doctype html>" +
+    "<html>" +
+      "<head>" +
+        "<meta charset='utf-8'>" +
+        "<title>" +
+          escapePrintHtml(
+            "Brew Record - " +
+            (
+              batch.batchNumber ||
+              batch.batchId ||
+              ""
+            )
+          ) +
+        "</title>" +
+        "<style>" +
+          "body{font-family:Arial,sans-serif;color:#111;margin:28px;}" +
+          "h1{margin:0;text-align:center;color:#f28c28;font-size:24px;}" +
+          "h2{text-align:center;margin:5px 0 24px;font-size:17px;}" +
+          "h3{margin:22px 0 8px;border-bottom:2px solid #f28c28;padding-bottom:5px;}" +
+          "table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:11px;}" +
+          "th,td{border:1px solid #bbb;padding:6px;vertical-align:top;text-align:left;}" +
+          "th{background:#e8eef3;width:25%;}" +
+          ".events th{background:#f28c28;width:auto;}" +
+          ".footer{margin-top:28px;font-size:10px;color:#666;}" +
+          ".signature{margin-top:28px;}" +
+          "@media print{button{display:none;}body{margin:10mm;}}" +
+        "</style>" +
+      "</head>" +
+      "<body>" +
+        "<h1>BUENA VISTA BREWING CO.</h1>" +
+        "<h2>Official Brew Record</h2>" +
+        "<h3>Batch Summary</h3>" +
+        "<table>" +
+          detailRows +
+        "</table>" +
+        (
+          handoffRows
+            ? (
+                "<h3>Cellar Handoff</h3>" +
+                "<table>" +
+                  handoffRows +
+                "</table>"
+              )
+            : ""
+        ) +
+        "<h3>Brew-Day Timeline & Event Log</h3>" +
+        "<table class='events'>" +
+          "<thead>" +
+            "<tr>" +
+              "<th>Date / Time</th>" +
+              "<th>Stage</th>" +
+              "<th>Action</th>" +
+              "<th>Readings</th>" +
+              "<th>Employee</th>" +
+              "<th>Notes</th>" +
+            "</tr>" +
+          "</thead>" +
+          "<tbody>" +
+            (
+              eventRows ||
+              "<tr><td colspan='6'>No events recorded.</td></tr>"
+            ) +
+          "</tbody>" +
+        "</table>" +
+        "<div class='signature'>" +
+          "Brewer Signature: ______________________________" +
+          "<br><br>" +
+          "Review Date: __________________________________" +
+        "</div>" +
+        "<div class='footer'>" +
+          "Generated from BVBOS Brew History." +
+        "</div>" +
+      "</body>" +
+    "</html>"
+  );
+}
+
+
+function printBrewingHistoryRecord() {
+  const record =
+    window.BVBOS_OPEN_BREW_RECORD;
+
+  if (!record) {
+    alert(
+      "Open a completed brew record before printing."
+    );
+
+    return;
+  }
+
+  const printWindow =
+    window.open(
+      "",
+      "_blank"
+    );
+
+  if (!printWindow) {
+    alert(
+      "The browser blocked the print window. Allow pop-ups for BVBOS and try again."
+    );
+
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(
+    buildPrintableBrewRecordHtml(
+      record
+    )
+  );
+  printWindow.document.close();
+
+  printWindow.focus();
+
+  window.setTimeout(
+    function() {
+      printWindow.print();
+    },
+    500
+  );
+}
+
+
+function generateBrewingHistoryPdf() {
+  const record =
+    window.BVBOS_OPEN_BREW_RECORD;
+
+  if (
+    !record ||
+    !record.batch ||
+    !record.batch.batchId
+  ) {
+    alert(
+      "Open a completed brew record before generating a PDF."
+    );
+
+    return;
+  }
+
+  const generatedBy =
+    window.prompt(
+      "Enter the employee name for the PDF audit log:",
+      record.batch.brewer || ""
+    );
+
+  if (generatedBy === null) {
+    return;
+  }
+
+  const button =
+    document.activeElement;
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Generating PDF...";
+  }
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        if (button) {
+          button.disabled =
+            false;
+
+          button.textContent =
+            "Generate PDF";
+        }
+
+        const openPdf =
+          window.confirm(
+            result.fileName +
+            " was created successfully.\n\nOpen the PDF now?"
+          );
+
+        if (openPdf) {
+          window.open(
+            result.fileUrl,
+            "_blank"
+          );
+        }
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        if (button) {
+          button.disabled =
+            false;
+
+          button.textContent =
+            "Generate PDF";
+        }
+
+        showBrewingError(error);
+      }
+    )
+    .generateBrewingRecordPdfService(
+      record.batch.batchId,
+      generatedBy
+    );
+}
+
+
+/* =========================================================
+   RC8.1 BREW HISTORY ACTIONS
+   ========================================================= */
+
+function openBrewingHistoryRecord(
+  batchId
+) {
+  if (!batchId) {
+    alert(
+      "The selected brew record does not have a valid Batch ID."
+    );
+
+    return;
+  }
+
+  const panel =
+    document.getElementById(
+      "brewHistoryRecordPanel"
+    );
+
+  if (panel) {
+    panel.style.display =
+      "block";
+
+    panel.innerHTML =
+      '<div class="loading-state">' +
+        'Loading brew record...' +
+      '</div>';
+  }
+
+  google.script.run
+    .withSuccessHandler(
+      function(record) {
+        renderBrewingHistoryRecord(
+          record
+        );
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        showBrewingError(error);
+      }
+    )
+    .getBrewingHistoryRecordService(
+      batchId
+    );
+}
+
+
+
+
+/* =========================================================
+   RC10.1 CELLAR ACTIONS
+   ========================================================= */
+
+function loadCellarOperations() {
+  google.script.run.withSuccessHandler(renderCellarOperations).withFailureHandler(function(error){alert('BVBOS Cellar could not load: '+(error&&error.message?error.message:error));}).getCellarOperationsService();
+}
+
+function submitCellarReading() {
+  const data={batchId:getInputValue('cellarReadingBatch'),temperatureF:getInputValue('cellarReadingTemperature'),gravity:getInputValue('cellarReadingGravity'),pH:getInputValue('cellarReadingPh'),pressurePsi:getInputValue('cellarReadingPressure'),employee:getInputValue('cellarReadingEmployee'),notes:getInputValue('cellarReadingNotes')};
+  google.script.run.withSuccessHandler(function(){['cellarReadingTemperature','cellarReadingGravity','cellarReadingPh','cellarReadingPressure','cellarReadingNotes'].forEach(function(id){const e=document.getElementById(id);if(e)e.value='';});loadCellarOperations();loadDashboard();alert('Cellar reading saved.');}).withFailureHandler(function(error){alert('BVBOS Cellar could not save the reading: '+(error&&error.message?error.message:error));}).saveCellarReadingService(data);
+}
+
+function submitCellarStatus() {
+  const data={batchId:getInputValue('cellarStatusBatch'),status:getInputValue('cellarStatusValue'),employee:getInputValue('cellarStatusEmployee'),notes:getInputValue('cellarStatusNotes')};
+  if(!data.batchId){alert('Select an active Cellar batch.');return;}
+  google.script.run.withSuccessHandler(function(){const n=document.getElementById('cellarStatusNotes');if(n)n.value='';loadCellarOperations();loadDashboard();alert('Tank status updated to '+data.status+'.');}).withFailureHandler(function(error){alert('BVBOS Cellar could not update the status: '+(error&&error.message?error.message:error));}).updateCellarStatusService(data);
+}
+
+
+/* =========================================================
+   BREWING OPERATIONS BROWSER ACTIONS
+   ========================================================= */
+
+function loadBrewingOperations() {
+  setText(
+    "brewingLastUpdated",
+    "Loading brewing data..."
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(data) {
+        renderBrewingOperations(
+          data
+        );
+
+        updateStageTimerDisplay();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        showBrewingError(error);
+      }
+    )
+    .getBrewingOperationsService();
+}
+
+
+function startSelectedBatch(batchId) {
+  if (!batchId) {
+    alert(
+      "The selected batch does not have a valid Batch ID."
+    );
+
+    return;
+  }
+
+  const employee =
+    getInputValue(
+      "advanceStageEmployee"
+    );
+
+  const notes =
+    getInputValue(
+      "advanceStageNotes"
+    );
+
+  const confirmed =
+    confirm(
+      "Start this planned batch and move it to Water Preparation?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        alert(
+          "Batch " +
+            result.batchNumber +
+            " started successfully. Current stage: " +
+            result.currentStage +
+            "."
+        );
+
+        loadBrewingOperations();
+        loadDashboard();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        showBrewingError(error);
+      }
+    )
+    .startBrewingBatchService(
+      batchId,
+      employee,
+      notes
+    );
+}
+
+
+
+
+/* =========================================================
+   RC6 STAGE TIMER ENGINE
+   ========================================================= */
+
+let BVBOS_STAGE_TIMER_INTERVAL = null;
+
+
+function getStageTimerStorageKey(
+  batchId,
+  stage
+) {
+  return (
+    "BVBOS_STAGE_TIMER_" +
+    String(batchId || "") +
+    "_" +
+    String(stage || "")
+      .replace(/[^a-z0-9]+/gi, "_")
+  );
+}
+
+
+function getStoredStageTimer(
+  batchId,
+  stage
+) {
+  const key =
+    getStageTimerStorageKey(
+      batchId,
+      stage
+    );
+
+  try {
+    const stored =
+      localStorage.getItem(key);
+
+    return stored
+      ? JSON.parse(stored)
+      : null;
+  } catch (error) {
+    console.error(
+      "Could not read stage timer:",
+      error
+    );
+
+    return null;
+  }
+}
+
+
+function saveStoredStageTimer(
+  batchId,
+  stage,
+  timer
+) {
+  const key =
+    getStageTimerStorageKey(
+      batchId,
+      stage
+    );
+
+  localStorage.setItem(
+    key,
+    JSON.stringify(timer)
+  );
+}
+
+
+function clearStoredStageTimer(
+  batchId,
+  stage
+) {
+  localStorage.removeItem(
+    getStageTimerStorageKey(
+      batchId,
+      stage
+    )
+  );
+}
+
+
+function getStageDurationMinutes() {
+  const durationField =
+    document.getElementById(
+      "stageField_durationMin"
+    );
+
+  const duration =
+    durationField
+      ? Number(durationField.value)
+      : 0;
+
+  if (
+    !duration ||
+    duration <= 0
+  ) {
+    throw new Error(
+      "Enter a valid stage duration before starting the timer."
+    );
+  }
+
+  return duration;
+}
+
+
+function startCurrentStageTimer() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    alert(
+      "There is no active brewing batch."
+    );
+
+    return;
+  }
+
+  let durationMin;
+
+  try {
+    durationMin =
+      getStageDurationMinutes();
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
+
+  const employee =
+    getInputValue(
+      "stageField_employee"
+    );
+
+  const timer = {
+    batchId:
+      activeBatch.batchId,
+
+    stage:
+      activeBatch.currentStage,
+
+    durationMin:
+      durationMin,
+
+    startedAt:
+      Date.now(),
+
+    stoppedAt:
+      null,
+
+    elapsedBeforeStopMs:
+      0,
+
+    running:
+      true,
+
+    completed:
+      false
+  };
+
+  saveStoredStageTimer(
+    activeBatch.batchId,
+    activeBatch.currentStage,
+    timer
+  );
+
+  logStageTimerEvent(
+    "Stage Timer Started",
+    durationMin,
+    employee,
+    "Timer started for " +
+      activeBatch.currentStage +
+      "."
+  );
+
+  startStageTimerInterval();
+  updateStageTimerDisplay();
+}
+
+
+function stopCurrentStageTimer() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    return;
+  }
+
+  const timer =
+    getStoredStageTimer(
+      activeBatch.batchId,
+      activeBatch.currentStage
+    );
+
+  if (
+    !timer ||
+    !timer.running
+  ) {
+    alert(
+      "No running timer is available."
+    );
+
+    return;
+  }
+
+  timer.elapsedBeforeStopMs =
+    Number(
+      timer.elapsedBeforeStopMs || 0
+    ) +
+    (
+      Date.now() -
+      Number(timer.startedAt)
+    );
+
+  timer.running = false;
+  timer.stoppedAt = Date.now();
+
+  saveStoredStageTimer(
+    activeBatch.batchId,
+    activeBatch.currentStage,
+    timer
+  );
+
+  logStageTimerEvent(
+    "Stage Timer Stopped",
+    timer.durationMin,
+    getInputValue(
+      "stageField_employee"
+    ),
+    "Timer stopped before completion."
+  );
+
+  stopStageTimerInterval();
+  updateStageTimerDisplay();
+}
+
+
+function completeCurrentStageTimer() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    return;
+  }
+
+  const timer =
+    getStoredStageTimer(
+      activeBatch.batchId,
+      activeBatch.currentStage
+    );
+
+  if (!timer) {
+    alert(
+      "Start the stage timer first."
+    );
+
+    return;
+  }
+
+  const elapsedMs =
+    getStageTimerElapsedMs(timer);
+
+  timer.running = false;
+  timer.completed = true;
+  timer.completedAt = Date.now();
+  timer.elapsedBeforeStopMs =
+    elapsedMs;
+
+  saveStoredStageTimer(
+    activeBatch.batchId,
+    activeBatch.currentStage,
+    timer
+  );
+
+  logStageTimerEvent(
+    "Stage Timer Completed",
+    timer.durationMin,
+    getInputValue(
+      "stageField_employee"
+    ),
+    "Timer completed for " +
+      activeBatch.currentStage +
+      "."
+  );
+
+  stopStageTimerInterval();
+  updateStageTimerDisplay();
+
+  alert(
+    activeBatch.currentStage +
+    " timer completed."
+  );
+}
+
+
+function getStageTimerElapsedMs(timer) {
+  const storedElapsed =
+    Number(
+      timer.elapsedBeforeStopMs || 0
+    );
+
+  if (!timer.running) {
+    return storedElapsed;
+  }
+
+  return (
+    storedElapsed +
+    (
+      Date.now() -
+      Number(timer.startedAt)
+    )
+  );
+}
+
+
+function startStageTimerInterval() {
+  stopStageTimerInterval();
+
+  BVBOS_STAGE_TIMER_INTERVAL =
+    window.setInterval(
+      updateStageTimerDisplay,
+      1000
+    );
+}
+
+
+function stopStageTimerInterval() {
+  if (
+    BVBOS_STAGE_TIMER_INTERVAL
+  ) {
+    window.clearInterval(
+      BVBOS_STAGE_TIMER_INTERVAL
+    );
+
+    BVBOS_STAGE_TIMER_INTERVAL =
+      null;
+  }
+}
+
+
+function updateStageTimerDisplay() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  const elapsedElement =
+    document.getElementById(
+      "stageTimerElapsed"
+    );
+
+  const remainingElement =
+    document.getElementById(
+      "stageTimerRemaining"
+    );
+
+  const targetElement =
+    document.getElementById(
+      "stageTimerTarget"
+    );
+
+  const statusElement =
+    document.getElementById(
+      "stageTimerStatus"
+    );
+
+  if (
+    !activeBatch ||
+    !elapsedElement ||
+    !remainingElement ||
+    !targetElement
+  ) {
+    return;
+  }
+
+  const timer =
+    getStoredStageTimer(
+      activeBatch.batchId,
+      activeBatch.currentStage
+    );
+
+  if (!timer) {
+    elapsedElement.textContent =
+      "00:00";
+
+    remainingElement.textContent =
+      "00:00";
+
+    targetElement.textContent =
+      "—";
+
+    if (statusElement) {
+      statusElement.textContent =
+        "Ready";
+
+      statusElement.className =
+        "module-status status-ready";
+    }
+
+    stopStageTimerInterval();
+    return;
+  }
+
+  const elapsedMs =
+    getStageTimerElapsedMs(timer);
+
+  const targetMs =
+    Number(
+      timer.durationMin || 0
+    ) *
+    60 *
+    1000;
+
+  const remainingMs =
+    Math.max(
+      0,
+      targetMs -
+      elapsedMs
+    );
+
+  elapsedElement.textContent =
+    formatStageTimerMs(
+      elapsedMs
+    );
+
+  remainingElement.textContent =
+    formatStageTimerMs(
+      remainingMs
+    );
+
+  targetElement.textContent =
+    Number(timer.durationMin || 0) +
+    " min";
+
+  if (statusElement) {
+    if (timer.completed) {
+      statusElement.textContent =
+        "Completed";
+
+      statusElement.className =
+        "module-status status-completed";
+    } else if (timer.running) {
+      statusElement.textContent =
+        remainingMs === 0
+          ? "Time Reached"
+          : "Running";
+
+      statusElement.className =
+        remainingMs === 0
+          ? "module-status status-warning"
+          : "module-status status-active";
+    } else {
+      statusElement.textContent =
+        "Stopped";
+
+      statusElement.className =
+        "module-status status-warning";
+    }
+  }
+
+  if (
+    timer.running &&
+    remainingMs === 0
+  ) {
+    document.title =
+      "⏱ " +
+      activeBatch.currentStage +
+      " Timer Complete — BVBOS";
+  }
+
+  if (timer.running) {
+    startStageTimerInterval();
+  }
+}
+
+
+function formatStageTimerMs(
+  milliseconds
+) {
+  const totalSeconds =
+    Math.max(
+      0,
+      Math.floor(
+        Number(milliseconds || 0) /
+        1000
+      )
+    );
+
+  const hours =
+    Math.floor(
+      totalSeconds /
+      3600
+    );
+
+  const minutes =
+    Math.floor(
+      (
+        totalSeconds %
+        3600
+      ) /
+      60
+    );
+
+  const seconds =
+    totalSeconds %
+    60;
+
+  if (hours > 0) {
+    return (
+      String(hours)
+        .padStart(2, "0") +
+      ":" +
+      String(minutes)
+        .padStart(2, "0") +
+      ":" +
+      String(seconds)
+        .padStart(2, "0")
+    );
+  }
+
+  return (
+    String(minutes)
+      .padStart(2, "0") +
+    ":" +
+    String(seconds)
+      .padStart(2, "0")
+  );
+}
+
+
+function logStageTimerEvent(
+  action,
+  durationMin,
+  employee,
+  notes
+) {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    return;
+  }
+
+  google.script.run
+    .withFailureHandler(
+      function(error) {
+        console.error(
+          "Could not log stage timer event:",
+          error
+        );
+      }
+    )
+    .logBrewDayEvent({
+      batchId:
+        activeBatch.batchId,
+
+      stage:
+        activeBatch.currentStage,
+
+      action:
+        action,
+
+      durationMin:
+        durationMin,
+
+      employee:
+        employee || "",
+
+      notes:
+        notes || "",
+
+      status:
+        action ===
+          "Stage Timer Completed"
+          ? "Completed"
+          : "In Progress",
+
+      createdAutomatically:
+        false
+    });
+}
+
+
+
+
+
+
+/* =========================================================
+   RC6.3 BREW CLOSEOUT ACTION
+   ========================================================= */
+
+
+
+function openWorkflowCloseout() {
+  const panel =
+    document.getElementById(
+      "brewCloseoutPanel"
+    );
+
+  if (!panel) {
+    alert(
+      "The Brew Closeout panel is not available."
+    );
+
+    return;
+  }
+
+  panel.scrollIntoView({
+    behavior:
+      "smooth",
+
+    block:
+      "start"
+  });
+
+  const fermenter =
+    document.getElementById(
+      "closeoutFermenter"
+    );
+
+  if (fermenter) {
+    window.setTimeout(
+      function() {
+        fermenter.focus();
+      },
+      500
+    );
+  }
+}
+
+
+function submitBrewCloseout() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    alert(
+      "There is no active brewing batch."
+    );
+
+    return;
+  }
+
+  if (
+    activeBatch.currentStage !==
+    "Brew Complete"
+  ) {
+    alert(
+      "The batch must be at Brew Complete before closeout."
+    );
+
+    return;
+  }
+
+  const confirmation =
+    document.getElementById(
+      "closeoutCellarConfirmed"
+    );
+
+  const closeoutData = {
+    fermenter:
+      getInputValue(
+        "closeoutFermenter"
+      ),
+
+    finalVolumeGal:
+      getInputValue(
+        "closeoutFinalVolume"
+      ),
+
+    originalGravity:
+      getInputValue(
+        "closeoutOriginalGravity"
+      ),
+
+    knockoutTemperatureF:
+      getInputValue(
+        "closeoutKnockoutTemperature"
+      ),
+
+    estimatedLossGal:
+      getInputValue(
+        "closeoutEstimatedLoss"
+      ),
+
+    employee:
+      getInputValue(
+        "closeoutEmployee"
+      ),
+
+    finalNotes:
+      getInputValue(
+        "closeoutFinalNotes"
+      ),
+
+    cellarHandoffConfirmed:
+      Boolean(
+        confirmation &&
+        confirmation.checked
+      )
+  };
+
+  if (
+    !closeoutData.fermenter ||
+    !closeoutData.finalVolumeGal ||
+    !closeoutData.originalGravity ||
+    !closeoutData.knockoutTemperatureF
+  ) {
+    alert(
+      "Enter the fermenter, final volume, original gravity, and knockout temperature."
+    );
+
+    return;
+  }
+
+  if (
+    !closeoutData.cellarHandoffConfirmed
+  ) {
+    alert(
+      "Confirm the Cellar Handoff before completing the brew."
+    );
+
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      "Complete Batch " +
+      activeBatch.batchNumber +
+      " and transfer it to " +
+      closeoutData.fermenter +
+      "?\n\nThis will remove the batch from Active Brewing."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        clearCurrentStageTimerForBatch(
+          activeBatch
+        );
+
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        alert(
+          "Workflow complete. Batch " +
+          result.batchNumber +
+          " was archived and Cellar Handoff " +
+          result.handoffId +
+          " was created."
+        );
+
+        loadBrewingOperations();
+        loadDashboard();
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        loadBrewingOperations();
+
+        showBrewingError(error);
+      }
+    )
+    .completeBrewingBatchCloseoutService(
+      activeBatch.batchId,
+      closeoutData
+    );
+}
+
+
+/* =========================================================
+   BREWING ADMIN TOOLS ACTIONS
+   ========================================================= */
+
+function getAdminToolReason() {
+  const reason =
+    getInputValue(
+      "adminToolReason"
+    );
+
+  if (!reason) {
+    alert(
+      "Enter a correction reason before using an Admin Tool."
+    );
+
+    const reasonField =
+      document.getElementById(
+        "adminToolReason"
+      );
+
+    if (reasonField) {
+      reasonField.focus();
+    }
+
+    return null;
+  }
+
+  return reason;
+}
+
+
+function clearCurrentStageTimerForBatch(
+  batch
+) {
+  if (
+    !batch ||
+    typeof clearStoredStageTimer !==
+      "function"
+  ) {
+    return;
+  }
+
+  clearStoredStageTimer(
+    batch.batchId,
+    batch.currentStage
+  );
+
+  if (
+    typeof stopStageTimerInterval ===
+      "function"
+  ) {
+    stopStageTimerInterval();
+  }
+}
+
+
+function adminMoveToPreviousStage() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    alert(
+      "There is no active brewing batch."
+    );
+
+    return;
+  }
+
+  if (!activeBatch.previousStage) {
+    alert(
+      "This batch is already at the first stage."
+    );
+
+    return;
+  }
+
+  const reason =
+    getAdminToolReason();
+
+  if (!reason) {
+    return;
+  }
+
+  const employee =
+    getInputValue(
+      "adminToolEmployee"
+    );
+
+  const confirmed =
+    confirm(
+      "Return Batch " +
+      activeBatch.batchNumber +
+      " from " +
+      activeBatch.currentStage +
+      " to " +
+      activeBatch.previousStage +
+      "?\n\nThis action will be recorded in the audit log."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        clearCurrentStageTimerForBatch(
+          activeBatch
+        );
+
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        alert(
+          "Batch " +
+          result.batchNumber +
+          " returned to " +
+          result.currentStage +
+          "."
+        );
+
+        loadBrewingOperations();
+        loadDashboard();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        showBrewingError(error);
+      }
+    )
+    .moveBrewingBatchToPreviousStageService(
+      activeBatch.batchId,
+      employee,
+      reason
+    );
+}
+
+
+function adminRestartCurrentStage() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    alert(
+      "There is no active brewing batch."
+    );
+
+    return;
+  }
+
+  const reason =
+    getAdminToolReason();
+
+  if (!reason) {
+    return;
+  }
+
+  const employee =
+    getInputValue(
+      "adminToolEmployee"
+    );
+
+  const confirmed =
+    confirm(
+      "Restart " +
+      activeBatch.currentStage +
+      " for Batch " +
+      activeBatch.batchNumber +
+      "?\n\nExisting readings remain in the audit log, but new readings " +
+      "will be required before advancement."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        clearCurrentStageTimerForBatch(
+          activeBatch
+        );
+
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        alert(
+          result.currentStage +
+          " restarted for Batch " +
+          result.batchNumber +
+          "."
+        );
+
+        loadBrewingOperations();
+        loadDashboard();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        showBrewingError(error);
+      }
+    )
+    .restartBrewingBatchStageService(
+      activeBatch.batchId,
+      employee,
+      reason
+    );
+}
+
+
+function saveDynamicStageReadings() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    alert(
+      "There is no active brewing batch."
+    );
+
+    return;
+  }
+
+  const readings =
+    collectDynamicStageReadings();
+
+  const requiredFields =
+    document.querySelectorAll(
+      "#dynamicStageFormPanel [data-required='true']"
+    );
+
+  for (
+    let index = 0;
+    index < requiredFields.length;
+    index++
+  ) {
+    const field =
+      requiredFields[index];
+
+    if (
+      !String(
+        field.value || ""
+      ).trim()
+    ) {
+      const label =
+        field
+          .closest(
+            ".dynamic-stage-field"
+          )
+          .querySelector("label");
+
+      alert(
+        (
+          label
+            ? label.textContent
+            : "A required field"
+        ) +
+        " must be entered."
+      );
+
+      field.focus();
+      return;
+    }
+  }
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        clearDynamicStageForm();
+
+        alert(
+          result.stage +
+          " readings saved. You may now advance to the next stage."
+        );
+
+        loadBrewingOperations();
+        loadDashboard();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        showBrewingError(error);
+      }
+    )
+    .saveCurrentStageReadingsService(
+      activeBatch.batchId,
+      readings
+    );
+}
+
+
+function submitCreateBrewingBatch() {
+  const batchData = {
+    batchNumber:
+      getInputValue(
+        "newBatchNumber"
+      ),
+
+    brewDate:
+      getInputValue(
+        "newBatchBrewDate"
+      ),
+
+    product:
+      getInputValue(
+        "newBatchProduct"
+      ),
+
+    recipeId:
+      getInputValue(
+        "newBatchRecipeId"
+      ),
+
+    brewer:
+      getInputValue(
+        "newBatchBrewer"
+      ),
+
+    plannedVolumeBbl:
+      getInputValue(
+        "newBatchVolume"
+      ),
+
+    fermenter:
+      getInputValue(
+        "newBatchFermenter"
+      ),
+
+    finalNotes:
+      getInputValue(
+        "newBatchNotes"
+      ),
+
+    status:
+      "Planned",
+
+    currentStage:
+      "Planned"
+  };
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        closeCreateBatchForm();
+        clearCreateBatchForm();
+
+        alert(
+          "Batch " +
+          result.batchNumber +
+          " was created successfully."
+        );
+
+        loadBrewingOperations();
+        refreshDashboard();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        showBrewingError(error);
+      }
+    )
+    .createBrewingBatchService(
+      batchData
+    );
+}
+
+
+function advanceActiveBrewingStage() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    alert(
+      "There is no active brewing batch."
+    );
+
+    return;
+  }
+
+  if (!activeBatch.nextStage) {
+    alert(
+      "This batch has already reached Brew Complete."
+    );
+
+    return;
+  }
+
+  const employee =
+    getInputValue(
+      "advanceStageEmployee"
+    );
+
+  const notes =
+    getInputValue(
+      "advanceStageNotes"
+    );
+
+  const confirmed =
+    confirm(
+      "Advance Batch " +
+      activeBatch.batchNumber +
+      " from " +
+      activeBatch.currentStage +
+      " to " +
+      activeBatch.nextStage +
+      "?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function(result) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        setInputValue(
+          "advanceStageNotes",
+          ""
+        );
+
+        alert(
+          "Batch " +
+          result.batchNumber +
+          " advanced to " +
+          result.currentStage +
+          "."
+        );
+
+        loadBrewingOperations();
+        refreshDashboard();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        showBrewingError(error);
+      }
+    )
+    .advanceBrewingStageService(
+      activeBatch.batchId,
+      activeBatch.nextStage,
+      employee,
+      notes
+    );
+}
+
+
+function submitBrewDayEvent() {
+  const activeBatch =
+    window.BVBOS_ACTIVE_BATCH;
+
+  if (!activeBatch) {
+    alert(
+      "There is no active brewing batch."
+    );
+
+    return;
+  }
+
+  const action =
+    getInputValue(
+      "brewEventAction"
+    );
+
+  if (!action) {
+    alert(
+      "Enter a brew-day action."
+    );
+
+    return;
+  }
+
+  const eventData = {
+    batchId:
+      activeBatch.batchId,
+
+    stage:
+      activeBatch.currentStage,
+
+    action:
+      action,
+
+    temperatureF:
+      getInputValue(
+        "brewEventTemperature"
+      ),
+
+    volumeGal:
+      getInputValue(
+        "brewEventVolume"
+      ),
+
+    gravity:
+      getInputValue(
+        "brewEventGravity"
+      ),
+
+    durationMin:
+      getInputValue(
+        "brewEventDuration"
+      ),
+
+    employee:
+      getInputValue(
+        "brewEventEmployee"
+      ),
+
+    notes:
+      getInputValue(
+        "brewEventNotes"
+      ),
+
+    status:
+      "Completed",
+
+    createdAutomatically:
+      false
+  };
+
+  setBrewingButtonsDisabled(
+    true
+  );
+
+  google.script.run
+    .withSuccessHandler(
+      function() {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        clearBrewEventForm();
+
+        alert(
+          "Brew-day event saved."
+        );
+
+        loadBrewingOperations();
+        refreshDashboard();
+      }
+    )
+    .withFailureHandler(
+      function(error) {
+        setBrewingButtonsDisabled(
+          false
+        );
+
+        showBrewingError(error);
+      }
+    )
+    .logBrewDayEvent(
+      eventData
+    );
+}
+
+
+function clearBrewEventForm() {
+  [
+    "brewEventAction",
+    "brewEventTemperature",
+    "brewEventVolume",
+    "brewEventGravity",
+    "brewEventDuration",
+    "brewEventNotes"
+  ].forEach(function(id) {
+    setInputValue(
+      id,
+      ""
+    );
+  });
+}
+
+
+function setBrewingButtonsDisabled(
+  disabled
+) {
+  document
+    .querySelectorAll(
+      "#page-brewing button"
+    )
+    .forEach(function(button) {
+      button.disabled =
+        Boolean(disabled);
+    });
+}
+
+
+function getInputValue(id) {
+  const element =
+    document.getElementById(id);
+
+  if (!element) {
+    return "";
+  }
+
+  return String(
+    element.value || ""
+  ).trim();
+}
+
+
+function setInputValue(
+  id,
+  value
+) {
+  const element =
+    document.getElementById(id);
+
+  if (element) {
+    element.value =
+      value || "";
+  }
+}
+
+
+function showBrewingError(error) {
+  const message =
+    error && error.message
+      ? error.message
+      : String(
+          error ||
+          "Unknown brewing error"
+        );
+
+  console.error(
+    "BVBOS Brewing error:",
+    error
+  );
+
+  alert(
+    "BVBOS Brewing could not complete the request: " +
+    message
+  );
+}
+</script>
